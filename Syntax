@@ -1,0 +1,1196 @@
+# Analisis Deskriptif
+
+import pandas as pd
+
+# Tentukan path ke file Excel
+file_path = r'C:\SAMUELFIX\data mentah.xlsx'
+
+# Gunakan pandas untuk membaca file Excel
+df = pd.read_excel(file_path)
+
+# Tampilkan isi DataFrame
+df.head()
+
+# Analisis Deskriptif Rating
+
+#Melihat banyak ulasan dari tiap rating
+
+df["Rating"].value_counts()
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Menghitung jumlah ulasan untuk setiap rating
+rating_counts = df['Rating'].value_counts().sort_index()
+
+# Daftar warna yang berbeda untuk setiap bar
+colors = plt.cm.viridis(np.linspace(0, 1, len(rating_counts)))
+
+_, ax1 = plt.subplots(figsize=(7, 6))
+rating_counts.plot(kind='bar', width=0.7, color=colors)
+plt.xlabel('Rating')
+plt.ylabel('Jumlah Ulasan')
+
+# Menambahkan nilai aktual di atas setiap bar
+for index, value in enumerate(rating_counts):
+    plt.text(index, value, str(value), ha='center', va='bottom')
+
+# Menambahkan judul
+plt.title('Jumlah Ulasan Berdasarkan Rating')
+
+plt.tight_layout()
+plt.show()
+
+# Analisis Deskriptif Lokasi
+
+#Melihat banyak ulasan dari tiap lokasi
+
+df["Location"].value_counts()
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Mengambil 10 lokasi terbanyak
+top_10_locations = df['Location'].value_counts().sort_values(ascending=False).head(10)
+
+# Membuat daftar warna yang berbeda menggunakan palet warna matplotlib
+colors = plt.cm.viridis(np.linspace(0, 1, len(top_10_locations)))
+
+_, ax1 = plt.subplots(figsize=(7, 6))
+top_10_locations.plot(kind='bar', width=0.7, color=colors)
+plt.xlabel('Lokasi')
+plt.ylabel('Jumlah Ulasan')
+
+# Menambahkan jumlah di atas setiap bar
+for index, value in enumerate(top_10_locations):
+    plt.text(index, value, str(value), ha='center', va='bottom')
+
+# Menambahkan judul
+plt.title('Jumlah Ulasan Berdasarkan 10 Lokasi Terbanyak')
+
+
+plt.tight_layout()
+plt.show()
+
+# Analisis Deskriptif Berdasarkan Tahun
+
+#Melihat banyak ulasan dari tiap tahun
+
+# Menggunakan regex untuk mengekstrak tahun dari kolom Date
+df['Year'] = df['Date'].str.extract(r'(\d{4})')
+
+# Menghitung jumlah ulasan untuk setiap tahun
+review_counts_by_year = df['Year'].value_counts().sort_index()
+
+# Menampilkan hasil
+print(review_counts_by_year)
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Menghitung jumlah ulasan untuk setiap tahun
+review_counts_by_year = df['Year'].value_counts().sort_index()
+
+# Membuat daftar warna yang berbeda menggunakan palet warna matplotlib
+colors = plt.cm.viridis(np.linspace(0, 1, len(review_counts_by_year)))
+
+_, ax1 = plt.subplots(figsize=(7, 6))
+review_counts_by_year.plot(kind='bar', width=0.7, color=colors)
+plt.xlabel('Tahun')
+plt.ylabel('Jumlah Ulasan')
+
+# Menambahkan jumlah di atas setiap bar
+for index, value in enumerate(review_counts_by_year):
+    plt.text(index, value, str(value), ha='center', va='bottom')
+
+# Menambahkan judul
+plt.title('Jumlah Ulasan Berdasarkan Tahun')
+
+plt.tight_layout()
+plt.show()
+
+# Text Preprocessing
+
+import pandas as pd
+
+# Tentukan path ke file Excel
+file_path = r'C:\SAMUELFIX\data mentah.xlsx'
+
+# Gunakan pandas untuk membaca file Excel
+df = pd.read_excel(file_path)
+
+# Tampilkan isi DataFrame
+df.head()
+
+# Case Folding
+
+#mengubah semua huruf dalam dokumen menjadi huruf kecil (lower text)
+df['Reviews'] = df['Reviews'].str.lower()
+df.head()
+
+# Cleansing
+
+#pembersihan teks dari tab, new life, back slice, mention, link, hastag, URL
+import string
+import re #regex library
+
+
+def remove_ulasan_spesial(text):
+  #menghapus tab new line dan back slice
+  text = text.replace('\\t'," ").replace('\\n'," ").replace('\\u'," ").replace('\\'," ")
+  #menghapus non ASCII (emoticon, chinese word, etc)
+  text = text.encode('ascii','replace').decode('ascii')
+  #menghapus mention, link, hastag
+  text = ' '.join(re.sub("([@#][A-Za-z0-9]+)|(\w+:\/\/\S+)"," ",text).split())
+  #menghapus incomplete url
+  return text.replace("https://"," ").replace("https://"," ")
+
+
+df['Reviews'] = df['Reviews'].apply(remove_ulasan_spesial)
+df.head()
+
+df.to_excel('result cleansing.xlsx')
+
+# Remove Number
+
+def remove_number(text) :
+    return re.sub(r"\d+","", text)
+
+df['Reviews'] = df['Reviews'].apply(remove_number)
+df.head()
+
+df.to_excel('result remove number.xlsx')
+
+# REMOVE PUNCTUATION
+
+#menghapus tanda baca
+
+def remove_punctuation(text):
+    return text.translate(str.maketrans("","",string.punctuation))
+
+df['Reviews'] = df['Reviews'].apply(remove_punctuation)
+df.head()
+
+df.to_excel('result remove punctuation.xlsx')
+
+# Remove Single Character
+
+#Menghapus huruf tunggal
+
+def remove_single_char(text):
+    return re.sub(r"\b[a-zA-Z]\b", " ", text)
+
+df['Reviews'] = df['Reviews'].apply(remove_single_char)
+df.head()
+
+df.to_excel('hasil remove single char.xlsx')
+
+#REMOVE SHORT WORDS
+
+#menghapus kata-kata pendek (kurang dari 3 huruf)
+
+df['Reviews'] = df['Reviews'].apply(lambda x: ' '.join([w for w in x.split() if len(w)>2]))
+df.head()
+
+df.to_excel('hasil short words.xlsx')
+
+# Stemming
+
+# Import StemmerFactory class
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+
+def stemming(text):
+    stemmed_words = [stemmer.stem(word) for word in text.split()]
+    return " ".join(stemmed_words)
+
+# Terapkan fungsi stemming pada kolom 'Reviews'
+
+df['Reviews'] = df['Reviews'].apply(lambda x: stemming(x))
+df.head()
+
+df.to_excel('hasil stemmingg.xlsx')
+
+# Tokenizing
+
+#pemisahan teks menjadi potongan-potongan kata yang disebut token
+
+from nltk.tokenize import word_tokenize
+
+#NLTK word tokenize
+def word_tokenize_wrapper(text) :
+    return word_tokenize(text)
+
+df['Reviews'] = df['Reviews'].apply(word_tokenize_wrapper)
+df.head()
+
+df.to_excel('hasil tokenizing.xlsx')
+
+# Spell Normalization
+
+#menyeragamkan kata yang memiliki makna yang sama namun penulisannya berbeda
+
+# Tentukan path ke file Excel
+file_path_normalisasi = r'C:\SAMUELFIX\spell normalization.xlsx'
+
+
+normalizad_word = pd.read_excel(file_path_normalisasi)
+normalizad_word_dict = {}
+
+for index, row in normalizad_word.iterrows():
+   if row[0] not in normalizad_word_dict: 
+     normalizad_word_dict[row[0]] = row[1]
+
+def normalized_term(document):
+   return [normalizad_word_dict[term] if term in normalizad_word_dict else term for term  in document]
+
+df["Reviews"] = df["Reviews"].apply(normalized_term)
+df.head()
+
+df.to_excel('Hasil normalisasi.xlsx')
+
+# Filtering
+
+import pandas as pd
+from nltk.corpus import stopwords
+
+# Import stopwords from NLTK
+list_stopwords = stopwords.words('indonesian')
+
+# Menambahkan stopword tambahan
+list_stopwords.extend(['pas', 'ya', 'sih', 'deh', 'loh', 'oiya', 'nih', 'oke', 'ah', 'ok', 'lawang', 'sewu', 'semarang', 'belanda', 'nya'])
+
+# Membaca stopword dari file Excel
+txt_stopword = pd.read_excel('C:/SAMUELFIX/Stopwords Indonesia.xlsx', names=['stopwords'], header=None)
+
+# Mengambil kata-kata dari file Excel dan mengkonversi ke list
+additional_stopwords = txt_stopword['stopwords'][0].split(' ')
+
+# Menambahkan kata-kata yang mengandung "di" dari file Excel ke dalam list_stopwords
+list_stopwords.extend([word for word in additional_stopwords if 'di' in word])
+
+# Mengonversi list ke set
+list_stopwords = set(list_stopwords)
+
+# Menghapus kata-kata yang mengandung "di"
+def stopwords_removal(words):
+    return [word for word in words if all(stop not in word for stop in list_stopwords)]
+
+# Apply stopwords removal to the 'Reviews' column in your DataFrame
+df['Reviews'] = df['Reviews'].apply(stopwords_removal)
+df.head()
+
+df.to_excel('Hasil Filtering.xlsx')
+
+# Hasil Text Preprocessing
+
+df.to_excel("Hasil Prepocessing Indonesia.xlsx")
+
+import pandas as pd
+
+# Ganti lokasi file Excel jika perlu
+file_path = 'C:/SAMUELFIX/Hasil Prepocessing Indonesia.xlsx'
+
+# Membaca data dari file Excel dan mengambil kolom 'Name', 'Rating', dan 'Reviews'
+df = pd.read_excel(file_path, usecols=['Name', 'Rating', 'Reviews'])
+
+# Mengganti nama kolom sesuai yang Anda inginkan
+df.columns = ['Name ', 'Rating', 'Reviews']
+
+# Menampilkan lima baris pertama dari dataframe
+df.head()
+
+#Menggabungkan daftar token menjadi dokumen string tunggal
+
+import ast
+
+def join_text_list(texts):
+    texts = ast.literal_eval(texts)
+    return ' '.join([text for text in texts])
+
+df["Reviews"] = df['Reviews'].apply(join_text_list)
+df.head()
+
+df.to_excel("Hasil Indonesia.xlsx")
+
+import difflib
+
+review_text_list = df['Reviews'].tolist()
+
+reviews = review_text_list
+s = difflib.SequenceMatcher(None, reviews).ratio()
+print("ratio:", s, '\n')
+
+# Frekuensi TF-IDF
+from nltk import FreqDist
+import seaborn as sns
+
+def freq_words(x, terms = 30):
+    all_words = ' '.join([text for text in x])
+    all_words = all_words.split()
+
+    fdist = FreqDist(all_words)
+    words_df = pd.DataFrame({'word': list(fdist.keys()), 'count':list(fdist.values())})
+
+    #memilih 25 term yang paling sering muncul
+    d = words_df.nlargest(columns="count", n = terms)
+    plt.figure(figsize=(25,7))
+    ax = sns.barplot(data=d, x='word', y='count')
+    ax.set(ylabel = 'count')
+    plt.show()
+
+#plot term yang paling sering
+
+freq_words(df['Reviews'],25)
+
+# Pembobotan Kata
+
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+cvec = CountVectorizer(stop_words='english', min_df=1, max_df=.5, ngram_range=(1,2))
+cvec
+
+#Menghitung semua n-gram yang ditemukan di semua dokumen
+
+from itertools import islice
+from nltk.corpus import stopwords
+global str
+
+cvec.fit(review_text_list)
+list(islice(cvec.vocabulary_.items(), 20))
+
+len(cvec.vocabulary_)
+
+cvec_counts = CountVectorizer(stop_words='english', min_df=.0025, max_df=.5, ngram_range=(1,2))
+cvec.fit(review_text_list)
+len(cvec.vocabulary_)
+
+cvec_counts = cvec.transform(review_text_list)
+print('sparse matrix shape:', cvec_counts.shape)
+print('nonzero count:', cvec_counts.nnz)
+print('sparsity: %.2f%%' % (100.0 * cvec_counts.nnz / (cvec_counts.shape[0] * cvec_counts.shape[1])))
+
+#Menghitung frekuensi kemunculan term
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+occ = np.asarray(cvec_counts.sum(axis=0)).ravel().tolist()
+counts_df = pd.DataFrame({'term' : cvec.get_feature_names_out(), 'occurences': occ})
+counts_df.sort_values(by='occurences', ascending=False).head(20)
+
+#Sekarang kita memiliki jumlah term untuk setiap dokumen kita dapat menggunakan tfidf transformer untuk menghitung
+#bobot untuk setiap isitlah dalam setiap dokumen
+
+from sklearn.feature_extraction.text import TfidfTransformer
+
+transformer = TfidfTransformer()
+transformed_weights = transformer.fit_transform(cvec_counts)
+transformed_weights
+
+#melihat 20 term teratas dengan weight rata-rata tf-idf
+
+weights = np.asarray(transformed_weights.mean(axis=0)).ravel().tolist()
+weights_df = pd.DataFrame({'term': cvec.get_feature_names_out(), 'weight' : weights})
+weights_df.sort_values(by='weight', ascending=False).head(20)
+
+# Pelabelan
+#membuat kamus kata
+
+word_dict = {}
+for i in range(0, len(df['Reviews'])):
+    sentence = df['Reviews'][i]
+    word_token = word_tokenize(sentence)
+    for j in word_token:
+        if j not in word_dict:
+            word_dict[j] = 1
+        else:
+            word_dict[j] += 1
+
+len(word_dict)
+
+len({k:v for (k,v) in word_dict.items() if v < 4})
+
+import pandas as pd
+
+# Daftar kata-kata negasi
+negasi = ['bukan', 'tidak', 'ga', 'gk']
+
+# Impor lexicon dari file Excel
+lexicon = pd.read_excel('C:/SAMUELFIX/full_lexicon.xlsx')
+lexicon = lexicon.drop(lexicon[(lexicon['word'] == 'bukan')
+                               |(lexicon['word'] == 'tidak')
+                               |(lexicon['word'] == 'ga')
+                               |(lexicon['word']== 'gk')].index,axis=0)
+lexicon = lexicon.reset_index(drop=True)
+
+len(lexicon)
+
+lexicon.head(10)
+
+lexicon_word = lexicon['word'].to_list()
+lexicon_num_words = lexicon['number_of_words']
+
+len(lexicon_word)
+
+#memeriksa apakah ada kata dalam kamus yang tidak termasuk dalam lexicon
+
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
+ns_words = []
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+for word in word_dict.keys():
+    kata_dasar = stemmer.stem(word)
+    if kata_dasar not in lexicon_word:
+        ns_words.append(word)
+len(ns_words)
+
+#melihat jenis kata,dimulai dengan beberapa kata yang memiliki banyak kemungkinan karena kemungkinan besar ini bukan tipe case
+
+len({k:v for (k,v) in word_dict.items() if ((k in ns_words)&(v>3))})
+
+ns_words_list = {k:v for (k,v) in word_dict.items() if ((k in ns_words)&(v>3))}
+
+#Ternyata kata-kata yang tidak termasuk dalam lexion, adalah kata yang tidak memiliki arti sentimen
+
+sort_orders = sorted(ns_words_list.items(), key=lambda x: x[1], reverse=True)
+sort_orders = sort_orders[0:20]
+for i in sort_orders:
+
+    print(i[0], i[1])
+
+#sentimen
+
+lexicon['number_of_words'].value_counts()
+
+import numpy as np
+import pandas as pd
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from nltk.tokenize import word_tokenize
+
+# Menghitung sentimen kata dengan menghitungnya menjadi lexicon
+sencol = []
+senrow = np.array([])
+nsen = 0
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+sentiment_list = []
+
+# Fungsi untuk menuliskan sentimen kata jika sudah ditemukan
+def found_word(ind, words, word, sen, sencol, sentiment, add):
+    # Jika sudah termasuk dalam bag of words matrix, maka naikkan (tambahkan) saja nilai
+    if word in sencol:
+        sen[sencol.index(word)] += 1
+    else:
+        # Jika tidak, maka tambahkan kata baru
+        sencol.append(word)
+        sen.append(1)
+        add += 1
+    # Jika ada kata negasi sebelumnya, sentimen adalah negasi sentimennya
+    if (words[ind - 1] in negasi):
+        sentiment += -lexicon['weight'][lexicon_word.index(word)]
+    else:
+        sentiment += lexicon['weight'][lexicon_word.index(word)]
+
+    return sen, sencol, sentiment, add
+
+# Memeriksa setiap kata, jika muncul dalam lexicon dan kemudian menghitung sentimennya
+for i in range(len(df)):
+    nsen = senrow.shape[0]
+    words = word_tokenize(df['Reviews'][i])
+    sentiment = 0
+    add = 0
+    prev = [0 for ii in range(len(words))]
+    n_words = len(words)
+    if len(sencol) > 0:
+        sen = [0 for j in range(len(sencol))]
+    else:
+        sen = []
+
+    for word in words:
+        ind = words.index(word)
+        # Periksa apakah mereka termasuk dalam lexicon
+        if word in lexicon_word:
+            sen, sencol, sentiment, add = found_word(ind, words, word, sen, sencol, sentiment, add)
+        else:
+            # Jika tidak, maka periksa kata dasarnya
+            kata_dasar = stemmer.stem(word)
+            if kata_dasar in lexicon_word:
+                sen, sencol, sentiment, add = found_word(ind, words, kata_dasar, sen, sencol, sentiment, add)
+            # Jika masih negatif, coba cocokkan kombinasi kata dengan kata yang berdekatan
+            elif n_words > 1:
+                if ind - 1 > -1:
+                    back_1 = words[ind - 1] + ' ' + word
+                    if back_1 in lexicon_word:
+                        sen, sencol, sentiment, add = found_word(ind, words, back_1, sen, sencol, sentiment, add)
+                    elif ind - 2 > -1:
+                        back_2 = words[ind - 2] + ' ' + back_1
+                        if back_2 in lexicon_word:
+                            sen, sencol, sentiment, add = found_word(ind, words, back_2, sen, sencol, sentiment, add)
+
+    # Jika ada kata baru yang ditemukan, maka perluas matriks
+    if add > 0:
+        if i > 0:
+            if (nsen == 0):
+                senrow = np.zeros([i, add], dtype=int)
+            elif (i != nsen):
+                padding_h = np.zeros([nsen, add], dtype=int)
+                senrow = np.hstack((senrow, padding_h))
+                padding_v = np.zeros([(i - nsen), senrow.shape[1]], dtype=int)
+                senrow = np.vstack((senrow, padding_v))
+            else:
+                padding = np.zeros([nsen, add], dtype=int)
+                senrow = np.hstack((senrow, padding))
+            senrow = np.vstack((senrow, sen))
+        if i == 0:
+            senrow = np.array(sen).reshape(1, len(sen))
+    # Jika tidak ada maka perbaharui saja matriks lama
+    elif (nsen > 0):
+        senrow = np.vstack((senrow, sen))
+
+    sentiment_list.append(sentiment)
+
+#membangun kerangka data yang berisi kumpulan kata dan sentimen yang telah dihitung sebelumnya
+
+sencol.append('sentiment')
+sentiment_array = np.array(sentiment_list).reshape(senrow.shape[0],1)
+sentiment_data = np.hstack((senrow,sentiment_array))
+df_sen = pd.DataFrame(sentiment_data,columns = sencol)
+
+import pandas as pd
+
+# Menyimpan DataFrame ke file Excel di lokasi khusus
+output_file = "C:/SAMUELFIX/Hasil Sentimentnice.xlsx"  # Nama file Excel dan jalur lengkap
+
+df_sen.to_excel(output_file, index=False)  # Menyimpan DataFrame ke file Excel tanpa indeks
+
+print(f"DataFrame telah diekspor ke file {output_file}")
+
+df_sen.head(5)
+
+#Melihat sentimen dari data orginal
+
+res_df = pd.DataFrame([])
+res_df['Rating'] = df['Rating'].copy()
+res_df['Name'] = df['Name '].copy()
+res_df['Reviews'] = df['Reviews'].copy()
+res_df['sentiment'] = df_sen['sentiment'].copy()
+
+res_df.head()
+
+#mengubah penilaian menjadi label 
+#pelabelan data,data akan berlabel negatif(0) jika nilai compound <0,0 dan akan bernilai positif(1) jika nilai compound >=0,0
+
+label = []
+for index, row in res_df.iterrows():
+    if row['sentiment'] >= 0:
+        label.append(1)
+    else:
+        label.append(0)
+res_df['label'] = label
+res_df = res_df.drop(columns=['sentiment'])
+res_df.head()
+
+#melihat banyak ulasan dari tiap label
+
+res_df['label'].value_counts()
+
+# Menyimpan DataFrame ke dalam file Excel
+res_df.to_excel('output.xlsx', index=False)  # 'output.xlsx' adalah nama file Excel yang akan disimpan
+
+# Bobot TF-IDF
+
+import pandas as pd
+
+# Baca file Excel "Output.xlsx"
+data = pd.read_excel("C:/SAMUELFIX/output.xlsx")
+
+# Pilih hanya kolom "Reviews" dan "label"
+data = data[["Reviews", "label"]]
+
+# Buat kolom baru untuk setiap kata dalam semua komentar
+kata_kolom = set()
+for index, row in data.iterrows():
+    komentar = row["Reviews"]
+    if isinstance(komentar, str):  # Periksa apakah komentar adalah string
+        kata_komentar = komentar.split()
+        kata_kolom.update(kata_komentar)
+
+# Hitung kemunculan kata-kata
+for kata in kata_kolom:
+    data[kata] = data["Reviews"].apply(lambda review: str(review).split().count(kata))
+
+# Simpan dataframe baru ke dalam file Excel
+data.to_excel("C:/SAMUELFIX/Processed_OutputOke.xlsx", index=False)
+
+# Output Penggabungan Hasil Label dan Train Test Data
+
+import pandas as pd
+
+# Baca file Excel "Output.xlsx"
+data = pd.read_excel("C:/SAMUELFIX/output.xlsx")
+
+# Pilih hanya kolom "Reviews" dan "label"
+data = data[["Reviews", "label"]]
+
+# Buat kolom baru untuk setiap kata dalam semua komentar
+kata_kolom = set()
+for index, row in data.iterrows():
+    komentar = row["Reviews"]
+    if isinstance(komentar, str):  # Periksa apakah komentar adalah string
+        kata_komentar = komentar.split()
+        kata_kolom.update(kata_komentar)
+
+# Hitung kemunculan kata-kata
+for kata in kata_kolom:
+    data[kata] = data["Reviews"].apply(lambda review: str(review).split().count(kata))
+
+# Simpan dataframe baru ke dalam file Excel
+data.to_excel("C:/SAMUELFIX/Processed_OutputOke2.xlsx", index=False)
+
+D = len(data)
+D
+
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfTransformer
+
+# Baca file Excel "Processed_Output.xlsx"
+data = pd.read_excel("C:/SAMUELFIX/Processed_OutputOke2.xlsx")
+
+# Hapus kolom "label" dari data
+labels = data["label"]
+data = data.drop(columns=["label"])
+
+# Inisialisasi TF-IDF Transformer
+tfidf_transformer = TfidfTransformer()
+
+# Hitung bobot TF-IDF
+tfidf_matrix = tfidf_transformer.fit_transform(data)
+
+# Hitung jumlah dokumen yang digunakan (D), dalam kasus ini jumlah baris
+D = len(data)
+
+# Inisialisasi DataFrame untuk menghitung jumlah dokumen yang mengandung term ke-i (DF_(i,d))
+DF_id_df = pd.DataFrame(data=0, columns=data.columns, index=data.index)
+
+# Menghitung jumlah dokumen yang mengandung term ke-i (DF_(i,d))
+for kata in data.columns:
+    DF_id_df[kata] = (data[kata] > 0).sum()
+
+# Hitung IDF (Inverse Document Frequency)
+IDF = np.log(D / (DF_id_df + 1))
+
+# Hitung bobot TF-IDF sesuai dengan rumus yang benar
+tfidf_matrix = data * IDF.values
+
+# Ubah hasil menjadi DataFrame agar lebih mudah dibaca
+tfidf_df = pd.DataFrame(data=tfidf_matrix, columns=data.columns)
+
+# Gabungkan kolom "label" dengan hasil perhitungan TF-IDF
+tfidf_df.insert(0, "label", labels)
+
+# Simpan hasil perhitungan TF-IDF ke dalam file Excel
+tfidf_df.to_excel("C:/SAMUELFIX/TFIDF_OutputOke.xlsx", index=False)
+
+# Metode Klasifikasi
+
+klasifikasiLawangSewu = res_df
+klasifikasiLawangSewu = res_df.drop(columns=['Rating','Name'])
+klasifikasiLawangSewu.head()
+
+data = pd.read_excel("C:/SAMUELFIX/Hasil Sentiment.xlsx")
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn import model_selection, svm
+from sklearn.metrics import accuracy_score
+from sklearn import preprocessing
+from sklearn.preprocessing import LabelEncoder
+
+# DATA TRAINING DAN DATA TESTING
+
+#data training dan data testing
+Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(klasifikasiLawangSewu['Reviews'],klasifikasiLawangSewu['label'],test_size=0.2, random_state=8)
+
+Encoder = LabelEncoder()
+Train_Y = Encoder.fit_transform(Train_Y)
+Test_Y = Encoder.fit_transform(Test_Y)
+
+Tfidf_vect = TfidfVectorizer(max_features=5000)
+Tfidf_vect.fit(klasifikasiLawangSewu['Reviews'])
+Train_X_Tfidf = Tfidf_vect.transform(Train_X)
+Test_X_Tfidf = Tfidf_vect.transform(Test_X)
+
+import pandas as pd
+
+# Membuat DataFrame baru untuk data training
+Train_df = pd.DataFrame(data={'Reviews': Train_X, 'label': Train_Y, 'HASIL': 'TRAIN'})
+
+# Membuat DataFrame baru untuk data testing
+Test_df = pd.DataFrame(data={'Reviews': Test_X, 'label': Test_Y, 'HASIL': 'TEST'})
+
+# Menggabungkan data training dan data testing menjadi satu DataFrame
+result_df = pd.concat([Train_df, Test_df], ignore_index=True)
+
+# Menyimpan hasil ke dalam file Excel
+result_df.to_excel("C:/SAMUELFIX/TrainTestAsekx1.xlsx", index=False)
+
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn import model_selection
+from sklearn.preprocessing import LabelEncoder
+
+# Membaca file TFIDF_OutputOke.xlsx
+input_file_path = "C:/SAMUELFIX/TFIDF_OutputOke.xlsx"
+df = pd.read_excel(input_file_path)
+
+# Memisahkan data training dan data testing
+Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(df['Reviews'], df['label'], test_size=0.2, random_state=8)
+
+Encoder = LabelEncoder()
+Train_Y = Encoder.fit_transform(Train_Y)
+Test_Y = Encoder.fit_transform(Test_Y)
+
+# Menggunakan TfidfVectorizer
+Tfidf_vect = TfidfVectorizer(max_features=5000)
+Tfidf_vect.fit(df['Reviews'])
+Train_X_Tfidf = Tfidf_vect.transform(Train_X)
+Test_X_Tfidf = Tfidf_vect.transform(Test_X)
+
+# Membuat DataFrame baru untuk data training
+Train_df = pd.DataFrame(data={'Reviews': Train_X, 'label': Train_Y, 'HASIL': 'TRAIN'})
+
+# Membuat DataFrame baru untuk data testing
+Test_df = pd.DataFrame(data={'Reviews': Test_X, 'label': Test_Y, 'HASIL': 'TEST'})
+
+# Menggabungkan data training dan data testing ke dalam urutan asli dari file "TFIDF_OutputOke.xlsx"
+result_df = pd.concat([Train_df, Test_df])
+
+# Mengurutkan hasil DataFrame berdasarkan indeks aslinya
+result_df = result_df.sort_index().reset_index(drop=True)
+
+# Menyimpan hasil ke dalam file Excel
+output_file_path = "C:/SAMUELFIX/TrainTestAsekkx1.xlsx"
+result_df.to_excel(output_file_path, index=False)
+
+import pandas as pd
+
+# Konversi data Train_X dan Train_Y menjadi DataFrame
+train_df = pd.DataFrame(data={'Reviews': Train_X, 'Label': Train_Y})
+
+# Menyimpan DataFrame ke dalam file Excel
+train_df.to_excel('C:/SAMUELFIX/Train1.xlsx', index=False)
+
+print("Data Train_X dan Label telah disimpan ke dalam file Excel.")
+
+import pandas as pd
+
+# Konversi data Test_X dan Test_Y menjadi DataFrame
+test_df = pd.DataFrame(data={'Reviews': Test_X, 'Label': Test_Y})
+
+# Menyimpan DataFrame ke dalam file Excel
+test_df.to_excel('C:/SAMUELFIX/Test1.xlsx', index=False)
+
+print("Data Test_X dan Label telah disimpan ke dalam file Excel.")
+
+Train_X_Tfidf
+
+Test_X_Tfidf
+
+len(Train_Y)
+
+len(Test_Y)
+
+Train_X.head()
+
+Train_X
+
+# Tunning Parameter
+
+Train_X_Tfidf
+
+Test_X_Tfidf
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+
+import pandas as pd
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+
+# Baca data dari file Excel ke dalam DataFrame
+data = pd.read_excel('C:/SAMUELFIX/TFIDF_OutputOke.xlsx')
+
+# Definisikan parameter range
+param_grid = {'C': [0.01, 0.1, 1, 10, 100, 1000],
+              'gamma': [0.01, 0.1, 1, 10, 100, 'auto'],
+              'kernel': ['rbf']}
+
+# Inisialisasi GridSearchCV
+grid = GridSearchCV(SVC(random_state=42), param_grid, refit=True, verbose=3, cv=5)
+
+# Fit model untuk pencarian grid
+grid.fit(Train_X_Tfidf, Train_Y)
+
+# Simpan seluruh hasil iterasi ke dalam DataFrame
+hasil_grid_svm = pd.DataFrame(grid.cv_results_)
+
+# Simpan DataFrame ke dalam file Excel
+hasil_grid_svm.to_excel('C:/SAMUELFIX/Hasil_GridSearchCVOke1x.xlsx', index=False)
+
+# Support Vector Machine
+
+# Prapemrosesan teks untuk data train dan data test
+Train_X_processed = Train_X
+Test_X_processed = Test_X
+
+# Transformasi data train dan data test menggunakan TF-IDF Vectorizer yang sama
+Train_X_Tfidf_processed = Tfidf_vect.transform(Train_X_processed)
+Test_X_Tfidf_processed = Tfidf_vect.transform(Test_X_processed)
+
+Train_X_processed.head()
+
+Test_X_Tfidf_processed
+
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, cohen_kappa_score, classification_report, confusion_matrix
+
+# Prediksi model gridsvm pada data train yang telah diproses
+Predicted1 = grid.predict(Train_X_Tfidf_processed)
+print("Hasil Evaluasi pada Data Train:")
+print("Akurasi Train:", accuracy_score(Train_Y, Predicted1))
+print("Recall Train:", recall_score(Train_Y, Predicted1))
+print("Precision Train:", precision_score(Train_Y, Predicted1))
+print("F1 Score Train:", f1_score(Train_Y, Predicted1))
+print("Cohen's Kappa Train:", cohen_kappa_score(Train_Y, Predicted1))
+print("Classification Report Train:")
+print(classification_report(Train_Y, Predicted1))
+print("Confusion Matrix Train:")
+print(confusion_matrix(Train_Y, Predicted1))
+
+
+# Prediksi model gridsvm pada data test yang telah diproses
+Predicted2 = grid.predict(Test_X_Tfidf_processed)
+print("Hasil Evaluasi pada Data Test:")
+print("Akurasi Test:", accuracy_score(Test_Y, Predicted2))
+print("Recall Test:", recall_score(Test_Y, Predicted2))
+print("Precision Test:", precision_score(Test_Y, Predicted2))
+print("F1 Score Test:", f1_score(Test_Y, Predicted2))
+print("Cohen's Kappa Test:", cohen_kappa_score(Test_Y, Predicted2))
+print("Classification Report Test:")
+print(classification_report(Test_Y, Predicted2))
+print("Confusion Matrix Test:")
+print(confusion_matrix(Test_Y, Predicted2))
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Fungsi untuk membuat heatmap dari confusion matrix
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(title)
+    plt.show()
+
+# Hitung confusion matrix untuk data train dan test
+conf_matrix_train = confusion_matrix(Train_Y, Predicted1)
+conf_matrix_test = confusion_matrix(Test_Y, Predicted2)
+
+# Nama kelas/target
+class_names = ['Class 0', 'Class 1']  # Sesuaikan dengan kelas/target Anda
+
+# Plot heatmap untuk confusion matrix data train
+plot_confusion_matrix(conf_matrix_train, class_names, title='Confusion Matrix (Train Data)')
+
+# Plot heatmap untuk confusion matrix data test
+plot_confusion_matrix(conf_matrix_test, class_names, title='Confusion Matrix (Test Data)')
+
+#Menunjukkan nilai alpha, b untuk model grid
+Grid_best_param = grid.best_estimator_
+alphasgrid = np.abs(Grid_best_param.dual_coef_)
+print("intercept:", Grid_best_param.intercept_)
+
+import pandas as pd
+from scipy.sparse import coo_matrix
+
+# Assuming Grid_best_param.dual_coef_ is a coo_matrix object
+coo_matrix_obj = Grid_best_param.dual_coef_
+
+# Convert the sparse matrix to a dense array
+dense_array = coo_matrix_obj.toarray()
+
+# Flatten the dense array to a 1D array
+flattened_array = dense_array.flatten()
+
+# Create a DataFrame with one column and each value as a row
+dual_coef_df = pd.DataFrame(flattened_array, columns=["dual_coef"])
+
+# Print the DataFrame
+print(dual_coef_df)
+
+import pandas as pd
+from scipy.sparse import coo_matrix
+
+# Assuming Grid_best_param.dual_coef_ is a coo_matrix object
+coo_matrix_obj = Grid_best_param.dual_coef_
+
+# Convert the sparse matrix to a dense array
+dense_array = coo_matrix_obj.toarray()
+
+# Flatten the dense array to a 1D array
+flattened_array = dense_array.flatten()
+
+# Create a DataFrame with one column and each value as a row
+dual_coef_df = pd.DataFrame(flattened_array, columns=["dual_coef"])
+
+# Define the file path where you want to save the Excel file
+file_path = 'C:/SAMUELFIX/dualcoef.xlsx'
+
+# Save the DataFrame to an Excel file
+dual_coef_df.to_excel(file_path, index=False)
+
+print(f'DataFrame has been saved to {file_path}')
+
+print("alphas:", alphasgrid)
+
+import pandas as pd
+from scipy.sparse import coo_matrix
+
+# Assuming alphasgrid is a coo_matrix object
+coo_matrix_obj_alphasgrid = alphasgrid
+
+# Convert the sparse matrix to a dense array
+dense_array_alphasgrid = coo_matrix_obj_alphasgrid.toarray()
+
+# Flatten the dense array to a 1D array
+flattened_array_alphasgrid = dense_array_alphasgrid.flatten()
+
+# Create a DataFrame with one column and each value as a row
+alphasgrid_df = pd.DataFrame(flattened_array_alphasgrid, columns=["alphas"])
+
+# Define the file path where you want to save the Excel file for alphasgrid
+alphasgrid_file_path = 'C:/SAMUELFIX/alphasgrid.xlsx'
+
+# Save the DataFrame to an Excel file
+alphasgrid_df.to_excel(alphasgrid_file_path, index=False)
+
+print(f'DataFrame has been saved to {alphasgrid_file_path}')
+
+#Banyaknya data yang menjadi support vector
+
+sv = pd.DataFrame(grid.best_estimator_.dual_coef_)
+sv
+
+print(sv)
+
+#Data ke-berapa yang menajadi support vector
+
+grid.best_estimator_.support_
+
+# Multinomial Naive Bayes
+
+from sklearn import naive_bayes
+from sklearn.metrics import accuracy_score
+
+# Membuat dan melatih model Naive Bayes pada data training
+NB = naive_bayes.MultinomialNB()
+NB.fit(Train_X_Tfidf, Train_Y)
+
+# Membuat prediksi pada data testing
+predictions_NB = NB.predict(Test_X_Tfidf)
+
+# Membuat prediksi pada data training
+train_predictions_NB = NB.predict(Train_X_Tfidf)
+
+# Menghitung dan mencetak akurasi prediksi pada data testing
+print('NB Accuracy Score on Test Data ->', accuracy_score(predictions_NB, Test_Y) * 100)
+
+# Menghitung dan mencetak akurasi prediksi pada data training
+print('NB Accuracy Score on Training Data ->', accuracy_score(train_predictions_NB, Train_Y) * 100)
+
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, cohen_kappa_score, classification_report, confusion_matrix
+
+# Membuat dan melatih model Naive Bayes pada data training
+NB = naive_bayes.MultinomialNB()
+NB.fit(Train_X_Tfidf, Train_Y)
+
+# Membuat prediksi pada data training
+train_predictions_NB = NB.predict(Train_X_Tfidf)
+
+# Menghitung dan mencetak evaluasi model pada data training
+print("Hasil Evaluasi pada Data Training (Naive Bayes):")
+print("Akurasi Train:", accuracy_score(Train_Y, train_predictions_NB))
+print("Recall Train:", recall_score(Train_Y, train_predictions_NB))
+print("Precision Train:", precision_score(Train_Y, train_predictions_NB))
+print("F1 Score Train:", f1_score(Train_Y, train_predictions_NB))
+print("Cohen's Kappa Train:", cohen_kappa_score(Train_Y, train_predictions_NB))
+print("Classification Report Train:")
+print(classification_report(Train_Y, train_predictions_NB))
+print("Confusion Matrix Train:")
+print(confusion_matrix(Train_Y, train_predictions_NB))
+
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, cohen_kappa_score, classification_report, confusion_matrix
+
+# Membuat dan melatih model Naive Bayes pada data training
+NB = naive_bayes.MultinomialNB()
+NB.fit(Train_X_Tfidf, Train_Y)
+
+# Membuat prediksi pada data testing
+predictions_NB = NB.predict(Test_X_Tfidf)
+
+# Membuat prediksi pada data training
+train_predictions_NB = NB.predict(Train_X_Tfidf)
+
+# Menghitung dan mencetak evaluasi model pada data testing
+print("Hasil Evaluasi pada Data Test (Naive Bayes):")
+print("Akurasi Test:", accuracy_score(Test_Y, predictions_NB))
+print("Recall Test:", recall_score(Test_Y, predictions_NB))
+print("Precision Test:", precision_score(Test_Y, predictions_NB))
+print("F1 Score Test:", f1_score(Test_Y, predictions_NB))
+print("Cohen's Kappa Test:", cohen_kappa_score(Test_Y, predictions_NB))
+print("Classification Report Test:")
+print(classification_report(Test_Y, predictions_NB))
+print("Confusion Matrix Test:")
+print(confusion_matrix(Test_Y, predictions_NB))
+
+# Menghitung dan mencetak evaluasi model pada data training
+print("Hasil Evaluasi pada Data Training (Naive Bayes):")
+print('Akurasi Training:', accuracy_score(Train_Y, train_predictions_NB))
+# Jika Anda juga ingin mencetak metrik evaluasi lainnya pada data training, Anda dapat menambahkannya di sini.
+
+import pandas as pd
+import matplotlib.pyplot as plt  
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+conf_mat = confusion_matrix(Test_Y, predictions_NB)
+class_label = ['negative', 'positive']
+test = pd.DataFrame(conf_mat, index=class_label, columns=class_label)
+sns.heatmap(test, annot=True, fmt="d")
+
+plt.title("Confusion Matrix for Test Data")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")  
+plt.show()
+
+import pandas as pd
+import matplotlib.pyplot as plt  
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+# Prediksi model pada data training disimpan dalam variabel train_predictions_SVM
+conf_mat = confusion_matrix(Train_Y, train_predictions_NB)
+class_label = ['negative', 'positive']
+train_confusion_matrix = pd.DataFrame(conf_mat, index=class_label, columns=class_label)
+sns.heatmap(train_confusion_matrix, annot=True, fmt="d")
+
+plt.title("Confusion Matrix for Training Data")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")  
+plt.show()
+
+# Visualisasi
+
+# Sentimen Negatif
+
+LawangSewuNeg = klasifikasiLawangSewu.loc[klasifikasiLawangSewu['label']==0]
+LawangSewuNeg.head()
+
+import difflib
+
+neg_text_list = LawangSewuNeg['Reviews'].tolist()
+reviews_neg = neg_text_list
+
+#stopword
+
+from nltk.corpus import stopwords
+english_stopwords = stopwords.words('english')
+print(len(english_stopwords))
+text_neg = str(neg_text_list)
+
+#MEMBUAT POTONGAN KATA
+
+from nltk.tokenize import word_tokenize
+tokens_neg = word_tokenize(text_neg)
+
+import nltk
+from nltk.corpus import stopwords
+
+stop_words = set(stopwords.words('english'))
+negative = [w for w in tokens_neg if not w in stop_words]
+extend = 'a'
+negative = [w for w in negative if not w in extend]
+
+negative = [nltk.stem.WordNetLemmatizer().lemmatize(word) for word in negative]
+
+import string
+table = str.maketrans('','',string.punctuation)
+strippedneg = [w.translate(table) for w in negative]
+
+freq_words(strippedneg,15)
+
+from wordcloud import WordCloud
+from wordcloud import ImageColorGenerator
+import matplotlib.pyplot as plt  # Tambahkan impor ini
+
+all_text_negative = ' '.join(str(word) for word in strippedneg)
+wordcloud = WordCloud(max_font_size=260, max_words=50, width=1000, height=1000, mode="RGBA", background_color='white').generate(all_text_negative)
+plt.figure(figsize=(15,8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.margins(x=0, y=0)
+plt.show()
+
+# Sentimen Positif
+
+LawangSewuPos = klasifikasiLawangSewu.loc[klasifikasiLawangSewu['label']==1]
+LawangSewuPos.head()
+
+import difflib
+
+pos_text_list = LawangSewuPos['Reviews'].tolist()
+
+reviews_pos = pos_text_list
+
+#stopwords
+from nltk.corpus import stopwords
+english_stopwords = stopwords.words('english')
+print(len(english_stopwords))
+text_pos = str(pos_text_list)
+
+#membuat potongan kata(token)
+from nltk.tokenize import word_tokenize
+tokens_pos = word_tokenize(text_pos)
+
+#filter out stopwords
+from nltk.corpus import stopwords
+stop_words = set(stopwords.words('english'))
+positive = [w for w in tokens_pos if not w in stop_words]
+positive = [w for w in positive if not w in extend]
+
+positive = [nltk.stem.WordNetLemmatizer().lemmatize(word) for word in positive]
+
+import string
+table = str.maketrans('','', string.punctuation)
+strippedpos = [w.translate(table) for w in positive]
+
+#memplot kata-kata yang paling sering muncul
+
+freq_words(strippedpos,15)
+
+#WORDCLOUD POSITIF
+
+from wordcloud import WordCloud
+from wordcloud import ImageColorGenerator
+
+all_text_positive = ' '.join(str(word) for word in strippedpos)
+wordcloud = WordCloud(max_font_size=260, max_words=50, width=1000, height=1000, mode='RGBA', background_color='white').generate(all_text_positive)
+plt.figure(figsize=(15,8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.margins(x=0,y=0)
+plt.show()
+
